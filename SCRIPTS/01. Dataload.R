@@ -9,13 +9,63 @@ dataset_ext_names <- c("lfsp_aj15_eul","lfsp_aj16_eul","lfsp_aj17_eul","lfsp_aj1
                        "lfsp_aj19_eul_pwt18","lfsp_aj20_eul_pwt22","lfsp_aj21_eul_pwt22","lfsp_aj22_eul_pwt22")
 dataset_years <- c(2015:2022)
 
-# Load the 2017 dataset from SPSS with PWT17
-lfsp_aj_2017_pwt17 <-  read_sav(paste0(INPUT,"\\","lfsp_aj17_eul",".sav"))
+
 
 #.............................................................................
 #### Processing functions ----
 #.............................................................................
 
+# Function to import tab data and manipulate. Alternatively load R datafile
+import_save_dta <- function(dta_num=NA,
+                            loadRDS=FALSE,
+                            old_dat=FALSE) {
+  
+  # Relevant names
+  temp_year <- dataset_years[dta_num]
+  temp_name <- paste0("lfsp_aj_",temp_year)
+  
+  if (loadRDS==FALSE) {
+    temp_dta <- read.table(file = paste0(INPUT,"\\",dataset_ext_names[dta_num],".tab"),
+                           header = TRUE) 
+    
+    # Save relevant weight in own column 
+    if (temp_year %in% c(2010:2011)) {
+      temp_dta <- temp_dta %>%
+        mutate(weight_val = PWT14,
+               weight_var = "PWT14")
+    } else  if (temp_year %in% c(2012:2019)) {
+      temp_dta <- temp_dta %>%
+        mutate(weight_val = PWT18,
+               weight_var = "PWT18")
+    } else if  (temp_year %in% c(2020:2022)) {
+      temp_dta <- temp_dta %>%
+        mutate(weight_val = PWT22,
+               weight_var = "PWT22")
+    }
+    
+    if (loadRDS==TRUE) {
+      # # To check against previous work, load previous dataset
+      if (temp_year==2017) {
+        
+        # Load the 2017 dataset from SPSS with PWT17
+        lfsp_aj_2017_pwt17 <-  read_sav(paste0(INPUT,"\\","lfsp_aj17_eul",".sav"))
+        
+        temp_dta <- lfsp_aj_2017_pwt17 %>%
+          mutate(weight_val = PWT17)
+      }
+    }
+    
+    # Save R data and allow loading
+    saveRDS(temp_dta,
+            file=paste0(RDATA,temp_name,".rds"))
+    
+  } else {
+    temp_dta <- readRDS(file=paste0(RDATA,temp_name,".rds"))
+  }
+ 
+  temp_list <- list("dta"=temp_dta,"name"=temp_name,"year"=temp_year)
+  return(temp_list)
+}
 
 # Function to adjust the data for our use, inspired by previous SPS code
 ## Missing variables:
@@ -93,45 +143,18 @@ new_weight <- function(dta=NA,
 lfs_dataset_nm <- c()
 
 for (y in 1:length(dataset_ext_names)) {
+  
+  # Produce a list with dataframe, name and year
+  temp_list <- import_save_dta(dta_num = y,
+                  loadRDS = TRUE,
+                  old_dat = FALSE)
+  
+  # Create dataframe with name and save its name
+  assign(temp_list[["name"]],temp_list[["dta"]])
+  lfs_dataset_nm <- c(lfs_dataset_nm,temp_list[["name"]])
 
-  temp_year <- dataset_years[y]
-  temp_name <- paste0("lfsp_aj_",temp_year)
-  
-  temp_dta <- read.table(file = paste0(INPUT,"\\",dataset_ext_names[y],".tab"),
-                         header = TRUE) 
-  
-  # Save relevant weight in own column 
-  if (temp_year %in% c(2010:2011)) {
-    temp_dta <- temp_dta %>%
-      mutate(weight_val = PWT14,
-             weight_var = "PWT14")
-  } else  if (temp_year %in% c(2012:2019)) {
-    temp_dta <- temp_dta %>%
-      mutate(weight_val = PWT18,
-             weight_var = "PWT18")
-  } else if  (temp_year %in% c(2020:2022)) {
-    temp_dta <- temp_dta %>%
-      mutate(weight_val = PWT22,
-             weight_var = "PWT22")
-  }
-  
-  # # To check against previous work, load previous dataset
-  # if (temp_year==2017) {
-  #   temp_dta <- lfsp_aj_2017_pwt17 %>%
-  #     mutate(weight_val = PWT17)
-  # }
-  
-  # Save R data and allow loading
-  saveRDS(temp_dta,
-          file=paste0(RDATA,temp_name,".rds"))
-  
-  #temp_dta <- readRDS(file=paste0(RDATA,temp_name,".rds"))
-  
-  assign(temp_name,temp_dta)
-  lfs_dataset_nm <- c(lfs_dataset_nm,temp_name)
-
-  
-  rm(temp_name,temp_dta,temp_year)
+  # Delete list
+  rm(temp_list)
   
 }
 
@@ -141,9 +164,6 @@ names(lfs_dataset_nm) <- as.character(dataset_years)
 #.............................................................................
 #### Adjustments to data ----
 #.............................................................................
-
-
-
 
 # Create list with datasets, including their name
 
@@ -194,7 +214,7 @@ for (dta_nm in lfs_dataset_nm) {
 }
 
 
-# Export tables
+# Export tables to Excel
 lfsp_aj_ldn <- lfsp_aj_full %>% 
   filter(london_worker %in% c("London","Not London")) %>% 
   mutate(id=paste(dta_year,london_worker,nte_worker,sep = "_")) %>% 
