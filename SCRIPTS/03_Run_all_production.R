@@ -29,7 +29,8 @@
   source(paste0(SUBSCRIPTS,"GLAE_functions_load",".r"))
   
   # Main data
-  source(paste0(SCRIPTS,"01. Dataload",".r"))
+  source(paste0(SCRIPTS,"01. Functions and setup",".r"))
+  source(paste0(SCRIPTS,"02. Dataload",".r"))
 
   
   
