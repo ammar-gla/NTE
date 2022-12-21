@@ -2,14 +2,15 @@
 ### Dataload and data processing ----
 #_____________________________________________________________________________
 
+# Clear out existing lists if taking memory
+lfs_dataset_list <- list()
+lfs_dataset_list_adj <- list()
 
 # Load the LFS datatets
 dataset_nm_1014 <- c("lfsp_aj10_end_user","lfsp_aj11_end_user","lfsp_aj12_end_user","lfsp_aj13_end_user","lfsp_aj14_end_user")
 dataset_ext_names <- c("lfsp_aj15_eul","lfsp_aj16_eul","lfsp_aj17_eul","lfsp_aj18_eul",
                        "lfsp_aj19_eul_pwt18","lfsp_aj20_eul_pwt22","lfsp_aj21_eul_pwt22","lfsp_aj22_eul_pwt22")
 dataset_years <- c(2015:2022)
-
-
 
 #.............................................................................
 #### Load LFS stats, automatically clean and save ----
@@ -22,7 +23,8 @@ for (y in 1:length(dataset_ext_names)) {
   # Produce a list with dataframe, name and year
   temp_list <- import_save_dta(dta_num = y,
                   loadRDS = TRUE,
-                  old_dat = FALSE)
+                  old_dat17 = TRUE,
+                  years_vector = dataset_years)
   
   # Create dataframe with name and save its name
   assign(temp_list[["name"]],temp_list[["dta"]])
@@ -53,27 +55,30 @@ lfsp_aj_full <- data.frame(dta_year=numeric(0),london_worker=character(0),uprate
 
 for (dta_nm in lfs_dataset_nm) {
   
-  london_wt_dta <- new_weight(lfs_dataset_list_adj[[dta_nm]])
+  london_wt_dta <- new_weight(lfs_dataset_list_adj[[dta_nm]],
+                              cons_method=TRUE)
+  
   uk_wt_dta <- new_weight(lfs_dataset_list_adj[[dta_nm]],
-                          uk_tot = TRUE)
+                          uk_tot = TRUE,
+                          cons_method=TRUE)
   
   # Extract year
   dta_year <- as.numeric(names(lfs_dataset_nm)[lfs_dataset_nm==dta_nm])
   
   # Merge on the weights
   lfsp_wt <- lfs_dataset_list_adj[[dta_nm]] %>% 
-    filter(ILODEFR==1 & quarter_response=="Yes") %>% 
-    left_join(london_wt_dta,by="london_worker") %>% 
-    merge(uk_wt_dta) %>% 
+    left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>% 
+    left_join(uk_wt_dta,by=c("ILODEFR")) %>% 
     mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
            weight_val_uk = weight_val * uprate_weight_uk,
            dta_year = dta_year)
   
+  # Only interested in quarter_response=="Yes" & ILODEFR==1, but keep all for data checking
   lfsp_sum <- lfsp_wt %>% 
-    group_by(london_worker,nte_worker,dta_year,uprate_weight_ldn,weight_var) %>% 
+    group_by(quarter_response,ILODEFR,london_worker,nte_worker,dta_year,uprate_weight_ldn,weight_var) %>% 
     summarise(wt_pop=sum(weight_val_ldn),
               unwt_pop=n()) %>% 
-    group_by(london_worker,dta_year,uprate_weight_ldn,weight_var) %>% 
+    group_by(quarter_response,ILODEFR,london_worker,dta_year,uprate_weight_ldn,weight_var) %>% 
     mutate(share_wt_pop = wt_pop/sum(wt_pop),
            share_unwt_pop = unwt_pop/sum(unwt_pop)) %>% 
     ungroup()
@@ -91,11 +96,18 @@ for (dta_nm in lfs_dataset_nm) {
 
 # Export tables to Excel
 lfsp_aj_ldn <- lfsp_aj_full %>% 
-  filter(london_worker %in% c("London","Not London")) %>% 
+  filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1) %>% 
   mutate(id=paste(dta_year,london_worker,nte_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
-wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data.xlsx"))
+# -- This one for newer method
+# wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data.xlsx"))
+# writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
+# writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
+# saveWorkbook(wb,paste0(DATA_OUT,"/NTE data.xlsx"),overwrite = T)
+
+# -- This one when checking against old analysis, i.e. using PWT 2017 data
+wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data - consistent.xlsx"))
 writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
 writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
-saveWorkbook(wb,paste0(DATA_OUT,"/NTE data.xlsx"),overwrite = T)
+saveWorkbook(wb,paste0(DATA_OUT,"/NTE data - consistent.xlsx"),overwrite = T)
