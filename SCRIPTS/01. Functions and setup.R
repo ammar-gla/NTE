@@ -90,7 +90,9 @@ recode_dta <- function(dta=NA) {
                                   USUWRK2== 2 & USUWRK3==2 ~ "No",
                                   USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
                                   USUWRK2== -9 & USUWRK3==-9 ~ "NA",
-                                  TRUE ~ "NA")) 
+                                  TRUE ~ "NA"),
+           industry_job = INDS07M,
+           test_var = 1) 
   
   
   
@@ -167,3 +169,73 @@ new_weight <- function(dta=NA,
   
   return(dta_new)
 }
+
+join_weights <- function(dta=NA,
+                         dta_year=NA,
+                         cons_method=FALSE,
+                         sum_group_vars=c("ILODEFR","london_worker"),
+                         nte_var="nte_worker", # in case we want separate evening/night time
+                         agg_vars=c("industry_job")) # turn the value into "Any" to allow binding
+  { 
+  
+  
+  london_wt_dta <- new_weight(dta,
+                              cons_method=cons_method)
+  
+  uk_wt_dta <- new_weight(dta,
+                          uk_tot = TRUE,
+                          cons_method=cons_method)
+  
+  if (cons_method==TRUE) {
+    # ALT - consistent with old method, merge all NA into non-London
+    lfsp_wt <- lfs_dataset_list_adj[[dta_nm]] %>%
+      mutate(london_worker=case_when(london_worker=="London" ~ london_worker,
+                                     TRUE ~ "Not London"),
+             across({{agg_vars}}, ~ 9999)) %>%
+      left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>%
+      left_join(uk_wt_dta,by=c("ILODEFR")) %>%
+      mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
+             weight_val_uk = weight_val * uprate_weight_uk,
+             dta_year = dta_year)
+  }
+  else {
+    # Merge on the weights
+    lfsp_wt <- dta %>%
+      mutate(across({{agg_vars}}, ~ 9999)) %>%
+      left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>%
+      left_join(uk_wt_dta,by=c("ILODEFR")) %>%
+      mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
+             weight_val_uk = weight_val * uprate_weight_uk,
+             dta_year = dta_year)
+  }
+  
+  # Note: to use a vector of strings as variables, need to use across(all_of(sum_group_vars) below
+  
+  
+  # Only interested in quarter_response=="Yes" & ILODEFR==1, but keep all for data checking
+  lfsp_sum <- lfsp_wt %>% 
+    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(nte_var)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
+    summarise(wt_pop=sum(weight_val_ldn),
+              unwt_pop=n()) %>% 
+    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
+    mutate(share_wt_pop = wt_pop/sum(wt_pop),
+           share_unwt_pop = unwt_pop/sum(unwt_pop)) %>% 
+    ungroup()
+  
+  temp_list <- list("lfsp_wt"=lfsp_wt,"lfsp_sum"=lfsp_sum)
+  return(temp_list)
+  
+}
+
+
+test <- function(vars=c("london_worker","nte_worker")) {
+  
+  dta <- d %>% 
+    group_by( across(all_of(vars)) ) %>% 
+    summarise(n=n())
+  
+  return(dta)
+}
+
+d <- tibble(a=c(10,10,10,10,10),london_worker=c(1,2,2,1,1),nte_worker=c(1,1,2,2,2))
+test()
