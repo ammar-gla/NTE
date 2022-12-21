@@ -91,6 +91,13 @@ recode_dta <- function(dta=NA) {
                                   USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
                                   USUWRK2== -9 & USUWRK3==-9 ~ "NA",
                                   TRUE ~ "NA"),
+           nte_worker_detail = case_when(USUWRK2==1 & USUWRK3==1 ~ "Both",
+                                         USUWRK2==1 & USUWRK3!=1 ~ "Evening",
+                                         USUWRK2!=1 & USUWRK3==1 ~ "Night",
+                                         USUWRK2== 2 & USUWRK3==2 ~ "No",
+                                         USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
+                                         USUWRK2== -9 & USUWRK3==-9 ~ "NA",
+                                         TRUE ~ "NA"),
            industry_job = INDS07M,
            test_var = 1) 
   
@@ -227,15 +234,15 @@ join_weights <- function(dta=NA,
   
 }
 
-
-test <- function(vars=c("london_worker","nte_worker")) {
-  
-  dta <- d %>% 
-    group_by( across(all_of(vars)) ) %>% 
-    summarise(n=n())
-  
-  return(dta)
-}
-
-d <- tibble(a=c(10,10,10,10,10),london_worker=c(1,2,2,1,1),nte_worker=c(1,1,2,2,2))
-test()
+# 
+# test <- function(vars=c("london_worker","nte_worker")) {
+#   
+#   dta <- d %>% 
+#     group_by( across(all_of(vars)) ) %>% 
+#     summarise(n=n())
+#   
+#   return(dta)
+# }
+# 
+# d <- tibble(a=c(10,10,10,10,10),london_worker=c(1,2,2,1,1),nte_worker=c(1,1,2,2,2))
+# test()
