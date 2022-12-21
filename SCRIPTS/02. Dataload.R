@@ -56,22 +56,32 @@ lfsp_aj_full <- data.frame(dta_year=numeric(0),london_worker=character(0),uprate
 for (dta_nm in lfs_dataset_nm) {
   
   london_wt_dta <- new_weight(lfs_dataset_list_adj[[dta_nm]],
-                              cons_method=TRUE)
+                              cons_method=FALSE)
   
   uk_wt_dta <- new_weight(lfs_dataset_list_adj[[dta_nm]],
                           uk_tot = TRUE,
-                          cons_method=TRUE)
+                          cons_method=FALSE)
   
   # Extract year
   dta_year <- as.numeric(names(lfs_dataset_nm)[lfs_dataset_nm==dta_nm])
   
   # Merge on the weights
-  lfsp_wt <- lfs_dataset_list_adj[[dta_nm]] %>% 
-    left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>% 
-    left_join(uk_wt_dta,by=c("ILODEFR")) %>% 
+  lfsp_wt <- lfs_dataset_list_adj[[dta_nm]] %>%
+    left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>%
+    left_join(uk_wt_dta,by=c("ILODEFR")) %>%
     mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
            weight_val_uk = weight_val * uprate_weight_uk,
            dta_year = dta_year)
+  
+  # ALT - consistent with old method, merge all NA into non-London
+  # lfsp_wt <- lfs_dataset_list_adj[[dta_nm]] %>% 
+  #   mutate(london_worker=case_when(london_worker=="London" ~ london_worker,
+  #                                  TRUE ~ "Not London")) %>% 
+  #   left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>% 
+  #   left_join(uk_wt_dta,by=c("ILODEFR")) %>% 
+  #   mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
+  #          weight_val_uk = weight_val * uprate_weight_uk,
+  #          dta_year = dta_year)
   
   # Only interested in quarter_response=="Yes" & ILODEFR==1, but keep all for data checking
   lfsp_sum <- lfsp_wt %>% 
@@ -101,13 +111,13 @@ lfsp_aj_ldn <- lfsp_aj_full %>%
   select(id,dta_year,weight_var,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
 # -- This one for newer method
-# wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data.xlsx"))
-# writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
-# writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
-# saveWorkbook(wb,paste0(DATA_OUT,"/NTE data.xlsx"),overwrite = T)
-
-# -- This one when checking against old analysis, i.e. using PWT 2017 data
-wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data - consistent.xlsx"))
+wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data.xlsx"))
 writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
 writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
-saveWorkbook(wb,paste0(DATA_OUT,"/NTE data - consistent.xlsx"),overwrite = T)
+saveWorkbook(wb,paste0(DATA_OUT,"/NTE data.xlsx"),overwrite = T)
+
+# -- This one when checking against old analysis, i.e. using PWT 2017 data
+# wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data - consistent.xlsx"))
+# writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
+# writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
+# saveWorkbook(wb,paste0(DATA_OUT,"/NTE data - consistent.xlsx"),overwrite = T)
