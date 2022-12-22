@@ -35,6 +35,10 @@ import_save_dta <- function(dta_num=NA,
                weight_var = "PWT22")
     }
     
+    # Save dataset year
+    temp_dta <- temp_dta %>%
+      mutate(dta_year = temp_year)
+    
     # Save R data and allow loading
     saveRDS(temp_dta,
             file=paste0(RDATA,temp_name,".rds"))
@@ -52,7 +56,8 @@ import_save_dta <- function(dta_num=NA,
       
       temp_dta <- lfsp_aj_2017_pwt17 %>%
         mutate(weight_val = PWT17,
-               weight_var = "PWT17")
+               weight_var = "PWT17",
+               dta_year = temp_year)
     }
   }
   
@@ -65,8 +70,16 @@ import_save_dta <- function(dta_num=NA,
 ## NATOX, CRYOX7
 recode_dta <- function(dta=NA) {
   
-  # Change data
+  # Check year and set SOC var accordingly
+  dta_year_check <- dta %>% 
+    group_by(dta_year) %>% 
+    filter(row_number()==1) %>% 
+    pull(dta_year)
   
+  if (dta_year_check>2020) soc_var <- "SC20MMJ" else soc_var <- "SC10MMJ"
+  
+  
+  # Change data
   dta_adj <- dta %>% 
     mutate(london_worker = case_when(GORWKR==8 ~ "London",
                                      GORWKR==-8 ~ "No answer",
@@ -98,7 +111,10 @@ recode_dta <- function(dta=NA) {
                                          USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
                                          USUWRK2== -9 & USUWRK3==-9 ~ "NA",
                                          TRUE ~ "NA"),
+           # eve_work = EVENG, #these variables ask whether person works at least half of time in evening/night
+           # night_work = NIGHT,
            industry_job = INDS07M,
+           occ_job = !!sym(soc_var),
            test_var = 1) 
   
   
@@ -202,8 +218,7 @@ join_weights <- function(dta=NA,
       left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>%
       left_join(uk_wt_dta,by=c("ILODEFR")) %>%
       mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
-             weight_val_uk = weight_val * uprate_weight_uk,
-             dta_year = dta_year)
+             weight_val_uk = weight_val * uprate_weight_uk)
   }
   else {
     # Merge on the weights
@@ -212,8 +227,7 @@ join_weights <- function(dta=NA,
       left_join(london_wt_dta,by=c("london_worker","ILODEFR")) %>%
       left_join(uk_wt_dta,by=c("ILODEFR")) %>%
       mutate(weight_val_ldn = weight_val * uprate_weight_ldn,
-             weight_val_uk = weight_val * uprate_weight_uk,
-             dta_year = dta_year)
+             weight_val_uk = weight_val * uprate_weight_uk)
   }
   
   # Note: to use a vector of strings as variables, need to use across(all_of(sum_group_vars) below

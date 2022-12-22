@@ -35,7 +35,7 @@ for (y in 1:length(dataset_ext_names)) {
   
 }
 
-# Give years as names
+# Give years as names to the vector
 names(lfs_dataset_nm) <- as.character(dataset_years)
 
 #.............................................................................
