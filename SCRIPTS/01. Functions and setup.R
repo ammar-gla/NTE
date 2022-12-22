@@ -114,8 +114,7 @@ recode_dta <- function(dta=NA) {
            # eve_work = EVENG, #these variables ask whether person works at least half of time in evening/night
            # night_work = NIGHT,
            industry_job = INDS07M,
-           occ_job = !!sym(soc_var),
-           test_var = 1) 
+           occ_job = !!sym(soc_var)) 
   
   
   
@@ -196,9 +195,10 @@ new_weight <- function(dta=NA,
 join_weights <- function(dta=NA,
                          dta_year=NA,
                          cons_method=FALSE,
-                         sum_group_vars=c("ILODEFR","london_worker"),
+                         default_group_vars=c("ILODEFR","london_worker"),
+                         sum_group_vars=c(), # additional grouping, e.g. industry and occupation
                          nte_var="nte_worker", # in case we want separate evening/night time
-                         agg_vars=c("industry_job")) # turn the value into "Any" to allow binding
+                         agg_vars=c("industry_job","occ_job")) # turn the value into "Any" to allow binding
   { 
   
   
@@ -235,12 +235,14 @@ join_weights <- function(dta=NA,
   
   # Only interested in quarter_response=="Yes" & ILODEFR==1, but keep all for data checking
   lfsp_sum <- lfsp_wt %>% 
-    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(nte_var)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
+    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(default_group_vars)),across(all_of(nte_var)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
     summarise(wt_pop=sum(weight_val_ldn),
               unwt_pop=n()) %>% 
-    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
+    group_by(quarter_response,across(all_of(sum_group_vars)),across(all_of(default_group_vars)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
     mutate(share_wt_pop = wt_pop/sum(wt_pop),
            share_unwt_pop = unwt_pop/sum(unwt_pop)) %>% 
+    group_by(quarter_response,across(all_of(default_group_vars)),across(all_of(nte_var)),across(all_of(agg_vars)),dta_year,uprate_weight_ldn,weight_var) %>% 
+    mutate(share_wt_nte_across_pop = wt_pop/sum(wt_pop)) %>% # to see how many of nte workers are in each sum_grouping
     ungroup()
   
   temp_list <- list("lfsp_wt"=lfsp_wt,"lfsp_sum"=lfsp_sum)
