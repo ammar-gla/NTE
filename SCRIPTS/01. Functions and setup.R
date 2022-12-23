@@ -111,6 +111,7 @@ recode_dta <- function(dta=NA) {
                                          USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
                                          USUWRK2== -9 & USUWRK3==-9 ~ "NA",
                                          TRUE ~ "NA"),
+           nte_helper = "Any", # for aggregating everything in data
            # eve_work = EVENG, #these variables ask whether person works at least half of time in evening/night
            # night_work = NIGHT,
            industry_job = INDS07M,
