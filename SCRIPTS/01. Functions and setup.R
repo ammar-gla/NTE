@@ -111,6 +111,14 @@ recode_dta <- function(dta=NA) {
                                          USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
                                          USUWRK2== -9 & USUWRK3==-9 ~ "NA",
                                          TRUE ~ "NA"),
+           nte_combi_worker = case_when(USUWRK1==1 & USUWRK2==1 & USUWRK3==1 ~ "D-E-N",
+                                        USUWRK1==1 & USUWRK2==1 & USUWRK3!=1 ~ "D-E",
+                                        USUWRK1==1 &  USUWRK2!=1 & USUWRK3==1 ~ "D-N",
+                                        USUWRK1!=1 &  USUWRK2==1 & USUWRK3==1 ~ "E-N",
+                                        USUWRK1==2 &  USUWRK2== 2 & USUWRK3==2 ~ "None",
+                                        USUWRK1==-8 &  USUWRK2== -8 & USUWRK3==-8 ~ "No answer",
+                                        USUWRK1==-9 &  USUWRK2== -9 & USUWRK3==-9 ~ "NA",
+                                         TRUE ~ "NA"),
            nte_helper = "Any", # for aggregating everything in data
            # eve_work = EVENG, #these variables ask whether person works at least half of time in evening/night
            # night_work = NIGHT,
