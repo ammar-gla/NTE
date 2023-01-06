@@ -122,6 +122,43 @@ for (dta_nm in lfs_dataset_nm) {
     bind_rows(temp_list[["lfsp_sum"]])
 }
 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# Shift work breakdown by detailed NTE
+
+# Full empty dataset
+lfsp_aj_full_shft <- data.frame(dta_year=numeric(0),london_worker=character(0),uprate_weight_ldn=numeric(0),
+                                nte_worker_detail=character(0),wt_pop=numeric(0),unwt_pop=numeric(0),
+                           industry_job=numeric(0),occ_job=numeric(0),SHFTWK99=numeric(0))
+
+
+
+for (dta_nm in lfs_dataset_nm) {
+  
+  # Extract year
+  dta_year <- as.numeric(names(lfs_dataset_nm)[lfs_dataset_nm==dta_nm])
+  
+  # First just extract the main summary data by NTE
+  temp_list <- join_weights(dta=lfs_dataset_list_adj[[dta_nm]],
+                            dta_year=dta_year,
+                            cons_method=FALSE,
+                            sum_group_vars=c("SHFTWK99"),
+                            nte_var="nte_combi_worker", 
+                            agg_vars=c("industry_job","occ_job")) 
+  
+  
+  #assign(paste0(dta_nm,"_wt"),temp_list[["lfsp_wt"]])
+  assign(paste0(dta_nm,"_sum"),temp_list[["lfsp_sum"]])
+  
+  # Add to full table
+  lfsp_aj_full_shft <- lfsp_aj_full_shft %>% 
+    bind_rows(temp_list[["lfsp_sum"]])
+  
+  rm(temp_list)
+  
+}
+
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # Using detailed NTE breakdown variable
 
@@ -184,6 +221,7 @@ for (dta_nm in lfs_dataset_nm) {
     bind_rows(temp_list[["lfsp_sum"]])
 }
 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # COMBI: Using permutations of usual work times variable
 
@@ -215,6 +253,7 @@ for (dta_nm in lfs_dataset_nm) {
   
 }
 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # Not breaking down by night-time work
 
@@ -329,8 +368,15 @@ lfsp_aj_occ_detail <- lfsp_aj_full_detail %>%
 lfsp_aj_head_combi <- lfsp_aj_full_combi %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
            industry_job==9999  & occ_job==9999) %>% 
-  mutate(id=paste(dta_year,london_worker,nte_worker_detail,sep = "_")) %>% 
-  select(id,dta_year,weight_var,london_worker,nte_worker_detail,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
+  mutate(id=paste(dta_year,london_worker,nte_combi_worker,sep = "_")) %>% 
+  select(id,dta_year,weight_var,london_worker,nte_combi_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
+
+# ~~~ NTE and shift work
+lfsp_aj_head_shft <- lfsp_aj_full_shft %>% 
+  filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
+           industry_job==9999  & occ_job==9999) %>% 
+  mutate(id=paste(dta_year,SHFTWK99,london_worker,nte_combi_worker,sep = "_")) %>% 
+  select(id,dta_year,weight_var,SHFTWK99,london_worker,nte_combi_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
 
 # ~~~ Industry and Occupation using overall 
@@ -363,6 +409,7 @@ writeData(wb, sheet = "nte_ind_detail",lfsp_aj_ind_detail, colNames = T)
 writeData(wb, sheet = "nte_occ_detail",lfsp_aj_occ_detail, colNames = T)
 writeData(wb, sheet = "nte_detail_headline",lfsp_aj_head_detail, colNames = T)
 writeData(wb, sheet = "nte_combi_headline",lfsp_aj_head_combi, colNames = T)
+writeData(wb, sheet = "nte_shft_headline",lfsp_aj_head_shft, colNames = T)
 writeData(wb, sheet = "all_headline",lfsp_aj_head_all, colNames = T)
 writeData(wb, sheet = "all_ind",lfsp_aj_ind_all, colNames = T)
 writeData(wb, sheet = "all_occ",lfsp_aj_occ_all, colNames = T)
