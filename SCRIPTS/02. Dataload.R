@@ -399,8 +399,16 @@ lfsp_aj_occ_all <- lfsp_aj_full_all %>%
   select(id,dta_year,weight_var,occ_job,london_worker,nte_helper,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
 
-# -- This one for newer method
-wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data.xlsx"))
+# -- Open workbook, delete existing data, and save new
+wb <- loadWorkbook(paste0(DATA_OUT,"/London at Night data.xlsx"))
+
+data_sheets <- c("nte_headline","nte_ind","nte_occ","nte_data","nte_ind_detail","nte_occ_detail",
+                 "nte_detail_headline","nte_combi_headline","nte_shft_headline","all_headline","all_ind","all_occ")
+
+for (sht in data_sheets) {
+  deleteData(wkbook , sheet = sht,cols = 1:100, rows = 1:100000, gridExpand = TRUE)
+}
+
 writeData(wb, sheet = "nte_headline",lfsp_aj_head, colNames = T)
 writeData(wb, sheet = "nte_ind",lfsp_aj_ind, colNames = T)
 writeData(wb, sheet = "nte_occ",lfsp_aj_occ, colNames = T)
@@ -413,12 +421,4 @@ writeData(wb, sheet = "nte_shft_headline",lfsp_aj_head_shft, colNames = T)
 writeData(wb, sheet = "all_headline",lfsp_aj_head_all, colNames = T)
 writeData(wb, sheet = "all_ind",lfsp_aj_ind_all, colNames = T)
 writeData(wb, sheet = "all_occ",lfsp_aj_occ_all, colNames = T)
-saveWorkbook(wb,paste0(DATA_OUT,"/NTE data.xlsx"),overwrite = T)
-
-
-
-# -- This one when checking against old analysis, i.e. using PWT 2017 data
-# wb <- loadWorkbook(paste0(DATA_OUT,"/NTE data - consistent.xlsx"))
-# writeData(wb, sheet = "nte_workers",lfsp_aj_ldn, colNames = T)
-# writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
-# saveWorkbook(wb,paste0(DATA_OUT,"/NTE data - consistent.xlsx"),overwrite = T)
+saveWorkbook(wb,paste0(DATA_OUT,"/London at Night data.xlsx"),overwrite = T)

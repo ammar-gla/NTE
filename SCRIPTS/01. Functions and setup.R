@@ -125,7 +125,8 @@ recode_dta <- function(dta=NA) {
            nte_helper = "Any", # for aggregating everything in data
            # eve_work = EVENG, #these variables ask whether person works at least half of time in evening/night
            # night_work = NIGHT,
-           industry_job = INDS07M,
+           industry_job = case_when(INDS07M %in% c(18L,19L) ~ 18L, # group R arts and S other services, together
+                                    TRUE ~ INDS07M), 
            occ_job = !!sym(soc_var)) 
   
   
