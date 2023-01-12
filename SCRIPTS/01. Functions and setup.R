@@ -77,7 +77,7 @@ recode_dta <- function(dta=NA) {
     pull(dta_year)
   
   if (dta_year_check>2020) soc_var <- "SC20MMJ" else soc_var <- "SC10MMJ"
-  
+  if (dta_year_check>2020) soc_var_two <- "SOC20M" else soc_var_two <- "SOC10M"  # for detailed occ
   
   # Change data
   dta_adj <- dta %>% 
@@ -127,7 +127,8 @@ recode_dta <- function(dta=NA) {
            # night_work = NIGHT,
            industry_job = case_when(INDS07M %in% c(18L,19L) ~ 18L, # group R arts and S other services, together
                                     TRUE ~ INDS07M), 
-           occ_job = !!sym(soc_var)) 
+           occ_job = !!sym(soc_var),
+           occ_job_two = floor(!!sym(soc_var_two)/100)) # forcing a two-digit SOC code 
   
   
   
@@ -211,7 +212,7 @@ join_weights <- function(dta=NA,
                          default_group_vars=c("ILODEFR","london_worker"),
                          sum_group_vars=c(), # additional grouping, e.g. industry and occupation
                          nte_var="nte_worker", # in case we want separate evening/night time
-                         agg_vars=c("industry_job","occ_job")) # turn the value into "Any" to allow binding
+                         agg_vars=c("industry_job","occ_job","occ_job_two")) # turn the value into "Any" to allow binding
   { 
   
   

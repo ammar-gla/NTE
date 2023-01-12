@@ -73,7 +73,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c(),
                             nte_var="nte_worker", 
-                            agg_vars=c("industry_job","occ_job")) 
+                            agg_vars=c("industry_job","occ_job","occ_job_two")) 
   
   
   #assign(paste0(dta_nm,"_wt"),temp_list[["lfsp_wt"]])
@@ -93,7 +93,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("industry_job"),
                             nte_var="nte_worker",
-                            agg_vars=c("occ_job"))
+                            agg_vars=c("occ_job","occ_job_two"))
   
   
   #assign(paste0(dta_nm,"_wt_ind"),temp_list[["lfsp_wt"]])
@@ -111,7 +111,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("occ_job"),
                             nte_var="nte_worker",
-                            agg_vars=c("industry_job"))
+                            agg_vars=c("industry_job","occ_job_two"))
   
   
   #assign(paste0(dta_nm,"_wt_ind"),temp_list[["lfsp_wt"]])
@@ -120,6 +120,22 @@ for (dta_nm in lfs_dataset_nm) {
   # Add to full table
   lfsp_aj_full <- lfsp_aj_full %>% 
     bind_rows(temp_list[["lfsp_sum"]])
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  # Extract using two digit occupations
+  temp_list <- join_weights(dta=lfs_dataset_list_adj[[dta_nm]],
+                            dta_year=dta_year,
+                            cons_method=FALSE,
+                            sum_group_vars=c("occ_job_two"),
+                            nte_var="nte_worker",
+                            agg_vars=c("industry_job","occ_job"))
+  
+  
+  # Add to full table
+  lfsp_aj_full <- lfsp_aj_full %>% 
+    bind_rows(temp_list[["lfsp_sum"]])
+  
 }
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -129,7 +145,7 @@ for (dta_nm in lfs_dataset_nm) {
 # Full empty dataset
 lfsp_aj_full_shft <- data.frame(dta_year=numeric(0),london_worker=character(0),uprate_weight_ldn=numeric(0),
                                 nte_worker_detail=character(0),wt_pop=numeric(0),unwt_pop=numeric(0),
-                           industry_job=numeric(0),occ_job=numeric(0),SHFTWK99=numeric(0))
+                           industry_job=numeric(0),occ_job=numeric(0),occ_job_two=numeric(0),SHFTWK99=numeric(0))
 
 
 
@@ -144,7 +160,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("SHFTWK99"),
                             nte_var="nte_combi_worker", 
-                            agg_vars=c("industry_job","occ_job")) 
+                            agg_vars=c("industry_job","occ_job","occ_job_two")) 
   
   
   #assign(paste0(dta_nm,"_wt"),temp_list[["lfsp_wt"]])
@@ -179,7 +195,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c(),
                             nte_var="nte_worker_detail", 
-                            agg_vars=c("industry_job","occ_job")) 
+                            agg_vars=c("industry_job","occ_job","occ_job_two")) 
   
   
   #assign(paste0(dta_nm,"_wt"),temp_list[["lfsp_wt"]])
@@ -199,7 +215,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("industry_job"),
                             nte_var="nte_worker_detail",
-                            agg_vars=c("occ_job"))
+                            agg_vars=c("occ_job","occ_job_two"))
   
   
   # Add to full table
@@ -214,11 +230,15 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("occ_job"),
                             nte_var="nte_worker_detail",
-                            agg_vars=c("industry_job"))
+                            agg_vars=c("industry_job","occ_job_two"))
   
   # Add to full table
   lfsp_aj_full_detail <- lfsp_aj_full_detail %>% 
     bind_rows(temp_list[["lfsp_sum"]])
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+
 }
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -242,7 +262,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c(),
                             nte_var="nte_combi_worker", 
-                            agg_vars=c("industry_job","occ_job")) 
+                            agg_vars=c("industry_job","occ_job","occ_job_two")) 
   
   
   # Add to full table
@@ -274,7 +294,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c(),
                             nte_var="nte_helper", 
-                            agg_vars=c("industry_job","occ_job")) 
+                            agg_vars=c("industry_job","occ_job","occ_job_two")) 
   
   
   #assign(paste0(dta_nm,"_wt"),temp_list[["lfsp_wt"]])
@@ -294,7 +314,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("industry_job"),
                             nte_var="nte_helper",
-                            agg_vars=c("occ_job"))
+                            agg_vars=c("occ_job","occ_job_two"))
   
   
   # Add to full table
@@ -309,7 +329,7 @@ for (dta_nm in lfs_dataset_nm) {
                             cons_method=FALSE,
                             sum_group_vars=c("occ_job"),
                             nte_var="nte_helper",
-                            agg_vars=c("industry_job"))
+                            agg_vars=c("industry_job","occ_job_two"))
   
   # Add to full table
   lfsp_aj_full_all <- lfsp_aj_full_all %>% 
@@ -324,7 +344,7 @@ for (dta_nm in lfs_dataset_nm) {
 # Headline figures
 lfsp_aj_head <- lfsp_aj_full %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job==9999  & occ_job==9999) %>% 
+           industry_job==9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,london_worker,nte_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
@@ -333,48 +353,55 @@ lfsp_aj_head <- lfsp_aj_full %>%
 # Industry figures
 lfsp_aj_ind <- lfsp_aj_full %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job!=9999  & occ_job==9999) %>% 
+           industry_job!=9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,industry_job,london_worker,nte_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,industry_job,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
 # Occupation figures
 lfsp_aj_occ <- lfsp_aj_full %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job==9999  & occ_job!=9999) %>% 
+           industry_job==9999  & occ_job!=9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,occ_job,london_worker,nte_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,occ_job,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
+
+lfsp_aj_occ_two <- lfsp_aj_full %>% 
+  filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
+           industry_job==9999  & occ_job==9999  & occ_job_two!=9999) %>% 
+  mutate(id=paste(dta_year,occ_job_two,london_worker,nte_worker,sep = "_")) %>% 
+  select(id,dta_year,weight_var,occ_job_two,london_worker,nte_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
+
 
 # ~~~ Industry and Occupation using detailed NTE var
 lfsp_aj_head_detail <- lfsp_aj_full_detail %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
-           industry_job==9999  & occ_job==9999) %>% 
+           industry_job==9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,london_worker,nte_worker_detail,sep = "_")) %>% 
   select(id,dta_year,weight_var,london_worker,nte_worker_detail,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
 
 lfsp_aj_ind_detail <- lfsp_aj_full_detail %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job!=9999  & occ_job==9999) %>% 
+           industry_job!=9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,industry_job,london_worker,nte_worker_detail,sep = "_")) %>% 
   select(id,dta_year,weight_var,industry_job,london_worker,nte_worker_detail,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
 lfsp_aj_occ_detail <- lfsp_aj_full_detail %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job==9999  & occ_job!=9999) %>% 
+           industry_job==9999  & occ_job!=9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,occ_job,london_worker,nte_worker_detail,sep = "_")) %>% 
   select(id,dta_year,weight_var,occ_job,london_worker,nte_worker_detail,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
 # ~~~ Permutations of NTE work
 lfsp_aj_head_combi <- lfsp_aj_full_combi %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
-           industry_job==9999  & occ_job==9999) %>% 
+           industry_job==9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,london_worker,nte_combi_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,london_worker,nte_combi_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
 # ~~~ NTE and shift work
 lfsp_aj_head_shft <- lfsp_aj_full_shft %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
-           industry_job==9999  & occ_job==9999) %>% 
+           industry_job==9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,SHFTWK99,london_worker,nte_combi_worker,sep = "_")) %>% 
   select(id,dta_year,weight_var,SHFTWK99,london_worker,nte_combi_worker,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
@@ -382,19 +409,19 @@ lfsp_aj_head_shft <- lfsp_aj_full_shft %>%
 # ~~~ Industry and Occupation using overall 
 lfsp_aj_head_all <- lfsp_aj_full_all %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 & 
-           industry_job==9999  & occ_job==9999) %>% 
+           industry_job==9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,london_worker,nte_helper,sep = "_")) %>% 
   select(id,dta_year,weight_var,london_worker,nte_helper,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop)
 
 lfsp_aj_ind_all <- lfsp_aj_full_all %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job!=9999  & occ_job==9999) %>% 
+           industry_job!=9999  & occ_job==9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,industry_job,london_worker,nte_helper,sep = "_")) %>% 
   select(id,dta_year,weight_var,industry_job,london_worker,nte_helper,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
 lfsp_aj_occ_all <- lfsp_aj_full_all %>% 
   filter(london_worker %in% c("London","Not London") & quarter_response=="Yes" & ILODEFR==1 &
-           industry_job==9999  & occ_job!=9999) %>% 
+           industry_job==9999  & occ_job!=9999  & occ_job_two==9999) %>% 
   mutate(id=paste(dta_year,occ_job,london_worker,nte_helper,sep = "_")) %>% 
   select(id,dta_year,weight_var,occ_job,london_worker,nte_helper,unwt_pop,wt_pop,share_unwt_pop,share_wt_pop,share_wt_nte_across_pop)
 
@@ -402,16 +429,17 @@ lfsp_aj_occ_all <- lfsp_aj_full_all %>%
 # -- Open workbook, delete existing data, and save new
 wb <- loadWorkbook(paste0(DATA_OUT,"/London at Night data.xlsx"))
 
-data_sheets <- c("nte_headline","nte_ind","nte_occ","nte_data","nte_ind_detail","nte_occ_detail",
+data_sheets <- c("nte_headline","nte_ind","nte_occ","nte_occ_two","nte_data","nte_ind_detail","nte_occ_detail",
                  "nte_detail_headline","nte_combi_headline","nte_shft_headline","all_headline","all_ind","all_occ")
 
 for (sht in data_sheets) {
-  deleteData(wkbook , sheet = sht,cols = 1:100, rows = 1:100000, gridExpand = TRUE)
+  deleteData(wb , sheet = sht,cols = 1:20, rows = 1:10000, gridExpand = TRUE)
 }
 
 writeData(wb, sheet = "nte_headline",lfsp_aj_head, colNames = T)
 writeData(wb, sheet = "nte_ind",lfsp_aj_ind, colNames = T)
 writeData(wb, sheet = "nte_occ",lfsp_aj_occ, colNames = T)
+writeData(wb, sheet = "nte_occ_two",lfsp_aj_occ_two, colNames = T)
 writeData(wb, sheet = "nte_data",lfsp_aj_full, colNames = T)
 writeData(wb, sheet = "nte_ind_detail",lfsp_aj_ind_detail, colNames = T)
 writeData(wb, sheet = "nte_occ_detail",lfsp_aj_occ_detail, colNames = T)
